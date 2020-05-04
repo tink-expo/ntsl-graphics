@@ -57,4 +57,6 @@ namespace Engine
     {
         glDeleteShader(_id);
     }
+
+    std::string Shader::_source_dir = "";
 }
