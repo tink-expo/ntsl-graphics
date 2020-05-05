@@ -100,7 +100,7 @@ int main(int argc, char** argv)
     cam_orientation = glm::rotate(cam_orientation, glm::radians(-30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     main_camera.SetOrientation(cam_orientation);
 
-    float grid_size = 0.25f;
+    float grid_size = 0.5f;
 
     HullMaterial hull_material;
     hull_material.CreateMaterial();
