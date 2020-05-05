@@ -96,16 +96,17 @@ int main(int argc, char** argv)
     cam_orientation = glm::rotate(cam_orientation, glm::radians(-30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     main_camera.SetOrientation(cam_orientation);
 
+    float grid_size = 1.0f;
+
     HullMaterial hull_material;
     hull_material.CreateMaterial();
-    marchingCubesInitialize(&hull_material);
+    marchingCubesInitialize(&hull_material, grid_size);
 
 	Geometry geometry = Geometry();
     
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     Engine::Mesh grid_mesh;
     grid_mesh.SetDrawMode(GL_POINTS);
-    float grid_size = 1.0f;
     geometry.GenerateGrid(&grid_mesh, glm::vec3(-2, -2, -2), glm::vec3(2, 2, 2), grid_size);
     Engine::RenderObject grid(&grid_mesh, &hull_material);
 
