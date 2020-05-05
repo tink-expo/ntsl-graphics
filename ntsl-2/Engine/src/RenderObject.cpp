@@ -36,12 +36,6 @@ namespace Engine
         GLenum drawMode = _mesh->GetDrawMode();
         int numElements = _mesh->GetNumElements();
 
-        // if (drawMode == GL_FALSE)
-        // {
-        //     std::cout << "Cannot render this object with undefined behaviour\n";
-        //     throw std::exception();
-        // }
-
         if (numElements == 0)
         {
             std::cout << "Cannot render this object with zero elements\n";

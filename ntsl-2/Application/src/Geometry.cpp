@@ -270,7 +270,7 @@ void Geometry::GenerateGrid(Engine::Mesh* mesh)
     mesh->AddAttribute(4);
     
     glm::vec4 p1(0.5, 0.5, -0.5, 1.0);
-    glm::vec4 p2(0.0, 0.5, -0.5, 1.0);
+    glm::vec4 p2(0.0, 0.5, 0.5, 1.0);
     glm::vec4 p3(0.0, 0.0, -0.5, 1.0);
 
 

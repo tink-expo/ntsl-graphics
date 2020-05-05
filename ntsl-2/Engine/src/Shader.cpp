@@ -4,12 +4,6 @@ namespace Engine
 {
     Shader::Shader(std::string source, GLenum shaderType) : _id(0)
     {
-        if (!(shaderType == GL_VERTEX_SHADER || shaderType == GL_GEOMETRY_SHADER || shaderType == GL_FRAGMENT_SHADER))
-        {
-            std::cout << "Invalid shader type\n";
-            throw std::exception();
-        }
-
         // Load shader file
         source = _source_dir + source;
         std::ifstream fp(source);

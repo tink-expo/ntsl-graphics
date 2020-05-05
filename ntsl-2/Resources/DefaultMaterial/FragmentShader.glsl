@@ -214,8 +214,8 @@ mat4 viewMatrix(vec3 eye, vec3 center, vec3 up) {
 
 void main()
 {
-    vec3 viewDir = rayDirection(45.0, u_resolution, gl_FragCoord.xy);
-    vec3 eye = vec3(7.0, 7.0, 7.0);
+    vec3 viewDir = rayDirection(60.0, u_resolution, gl_FragCoord.xy);
+    vec3 eye = vec3(0.0, 7.0, 7.0);
     
     mat4 viewToWorld = viewMatrix(eye, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
     

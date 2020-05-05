@@ -98,8 +98,6 @@ inline int pick(int xpos, int ypos, int frameBufferWidth, int frameBufferHeight)
     int g = (int)pixel[1];
     int b = (int)pixel[2];
 
-    std::cout << r << " " << g << " " << b << std::endl;
-
     int targetID = ((r << 16) & 0xFF0000) + ((g << 8) & 0x00FF00) + b & 0xFF;
 
     glReadBuffer(GL_NONE);

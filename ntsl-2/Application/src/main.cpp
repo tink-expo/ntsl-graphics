@@ -94,8 +94,9 @@ int main(int argc, char** argv)
 
 	Geometry geometry = Geometry();
     
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     Engine::Mesh grid_mesh;
-    grid_mesh.SetDrawMode(GL_TRIANGLES);
+    grid_mesh.SetDrawMode(GL_POINTS);
     geometry.GenerateGrid(&grid_mesh);
     Engine::RenderObject grid(&grid_mesh, &hull_material);
 
@@ -127,7 +128,7 @@ int main(int argc, char** argv)
         glClearColor((GLclampf) 0.0f, (GLclampf) 0.0f, (GLclampf) 0.0f, (GLclampf) 0.0f);
 
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         /* render objects */
         grid.Render(&main_camera);

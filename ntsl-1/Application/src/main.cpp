@@ -97,6 +97,8 @@ int main(int argc, char** argv)
     glViewport(0, 0, g_framebuffer_width, g_framebuffer_height);
     float ratio = g_framebuffer_width / (float)g_framebuffer_height;
     main_camera.SetProjection(ratio, 60.0f, 0.01f, 1000.0f);
+    main_camera.SetPosition(glm::vec3(0.0f, 7.0f, 7.0f));
+    main_camera.SetOrientation(glm::rotate(glm::mat4(1.0f), -(float) M_PI / 4.0f, glm::vec3(1.0f, 0.0f, 0.0f)));
 
     DefaultMaterial material;
     material.CreateMaterial();
