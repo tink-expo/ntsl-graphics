@@ -13,11 +13,25 @@ layout (triangle_strip, max_vertices = 15) out;
 
 out vec3 fcolor;
 
+mat3 rrt(vec3 r)
+{
+	return mat3(r.x * r, r.y * r, r.z * r);
+}
+
+vec3 SimpleBrush(vec3 pos, vec3 center, vec3 force)
+{
+	vec3 diff = pos - center;
+	float factor = max(dot(diff, force), 0.0);
+	return pos + factor * force;
+}
+
 float offsetSphereFunction(vec3 pos)
 {
-	float offset = gridSize * sqrt(3.0f);
-	float radius = 1.0f;
-	return length(pos) - (offset + radius);
+	// vec3 deformed_pos = kelvinletsBrush(pos, vec3(1, 1, 0));
+	// vec3 deformed_pos = pos + vec3(1, 1, 0);
+	float offset = gridSize * sqrt(3.0);
+	float radius = 10.0;
+	return length(pos) - (radius + offset);
 }
 
 int getCubeIndex(vec3 pos)
@@ -93,8 +107,9 @@ void main()
 			i += 3) {
 		for (int j = 0; j < 3; ++j) {
 			int tri = triTableValue(cube_index, i + j);
-			vec4 hull_vpos = vec4(vertices[tri], 1.0f);
-			gl_Position = projectionMatrix * (MVM * hull_vpos);
+			vec3 hull_vpos = vertices[tri];
+			hull_vpos = SimpleBrush(hull_vpos, vec3(0, 0, 0), vec3(1, 1, 0));
+			gl_Position = projectionMatrix * (MVM * vec4(hull_vpos, 1));
 			EmitVertex();
 		}
 		EndPrimitive();
