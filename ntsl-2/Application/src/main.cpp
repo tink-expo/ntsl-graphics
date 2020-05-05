@@ -30,6 +30,8 @@ float g_window_height = 768.f;
 int g_framebuffer_width = 1024;
 int g_framebuffer_height = 768;
 
+float PI = (float) M_PI;
+
 int main(int argc, char** argv)
 {
     if (argc < 2) {
@@ -88,16 +90,21 @@ int main(int argc, char** argv)
     glViewport(0, 0, g_framebuffer_width, g_framebuffer_height);
     float ratio = g_framebuffer_width / (float)g_framebuffer_height;
     main_camera.SetProjection(ratio, 60.0f, 0.01f, 1000.0f);
+    main_camera.SetPosition(glm::vec3(0, 1, 10));
+    glm::mat4 cam_orientation = glm::rotate(glm::mat4(1.0f), glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    cam_orientation = glm::rotate(cam_orientation, glm::radians(-30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    main_camera.SetOrientation(cam_orientation);
 
     HullMaterial hull_material;
     hull_material.CreateMaterial();
 
 	Geometry geometry = Geometry();
     
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     Engine::Mesh grid_mesh;
     grid_mesh.SetDrawMode(GL_POINTS);
-    geometry.GenerateGrid(&grid_mesh);
+    float grid_size = 1.0f;
+    geometry.GenerateGrid(&grid_mesh, glm::vec3(-2, -2, -2), glm::vec3(2, 2, 2), grid_size);
     Engine::RenderObject grid(&grid_mesh, &hull_material);
 
     float prev_time = 0;

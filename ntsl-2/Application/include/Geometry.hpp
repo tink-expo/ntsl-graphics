@@ -17,12 +17,10 @@ public:
 	Geometry();
 	~Geometry();
 	glm::vec3 ComputeNormal(glm::vec4 a_a, glm::vec4 a_b, glm::vec4 a_c);
-	void GenerateSphere(Engine::Mesh* mesh, float radius);
-	void GenerateCone(Engine::Mesh* mesh, float radius, float height);
-	void GenerateWing(Engine::Mesh* mesh, float radius, float height);
-	void GenerateGradientRectangle(Engine::Mesh* mesh);
-	void GenerateAbigRectangle(Engine::Mesh* mesh, float x, float y);
-	void GenerateGrid(Engine::Mesh* mesh);
+	void GenerateGrid(
+			Engine::Mesh* mesh, 
+        	const glm::vec3& region_small, const glm::vec3& region_big,
+			float grid_size);
 
 	void AddChild(Geometry *geometry);
 };
