@@ -19,6 +19,7 @@
 // include application headers
 #include <DefaultMaterial.hpp>
 #include <HullMaterial.hpp>
+#include <MarchingCubes.hpp>
 
 #include <Geometry.hpp>
 
@@ -97,6 +98,7 @@ int main(int argc, char** argv)
 
     HullMaterial hull_material;
     hull_material.CreateMaterial();
+    marchingCubesInitialize(&hull_material);
 
 	Geometry geometry = Geometry();
     

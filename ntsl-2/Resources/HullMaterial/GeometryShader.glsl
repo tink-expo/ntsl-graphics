@@ -3,25 +3,33 @@
 uniform mat4 cameraTransform;
 uniform mat4 projectionMatrix;
 
+uniform isampler2D edgeTableTex;
+uniform isampler2D triTableTex;
+uniform int testu;
+
 layout (points) in;
 layout (triangle_strip, max_vertices = 3) out;
 
 out vec3 fcolor;
+
+int edgeTableValue(int i)
+{
+	return texelFetch(edgeTableTex, ivec2(i, 0), 0).a;
+}
+
+int triTableValue(int i, int j)
+{
+	return texelFetch(triTableTex, ivec2(j, i), 0).a;
+}
 
 void main()
 {
 	vec4 pos = gl_in[0].gl_Position;
 
 	fcolor = vec3(1.0, 0.0, 0.0);
-	if (pos.y > 0 && pos.z > 0) {
-		fcolor.y = 1.0;
-	}
-	if (pos.y < 0 && pos.z < 0) {
-		fcolor.z = 1.0;
-	}
-	if (pos.y > 0 && pos.z < 0) {
-		fcolor.x = 0;
-		fcolor.y = 1;
+
+	if (texelFetch(edgeTableTex, ivec2(2, 0), 0) == vec4(0)) {
+		fcolor.b = 1.0;
 	}
 
 	mat4 MVM = inverse(cameraTransform);
