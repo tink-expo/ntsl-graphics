@@ -6,10 +6,11 @@ uniform mat4 projectionMatrix;
 uniform isampler2D edgeTableTex;
 uniform isampler2D triTableTex;
 uniform float gridSize;
-uniform vec3 cubeDiffs;
+uniform vec3 cubeDiffs[8];
 
 layout (points) in;
-layout (triangle_strip, max_vertices = 3) out;
+layout (triangle_strip, max_vertices = 15) out;
+// layout (points, max_vertices = 15) out;
 
 out vec3 fcolor;
 
@@ -18,12 +19,14 @@ float offsetSphereFunction(vec3 pos)
 	float offset = gridSize * sqrt(3.0f);
 	float radius = 1.0f;
 	return length(pos) - (offset + radius);
+	// return length(pos) - radius;
 }
 
 int getCubeIndex(vec3 pos)
 {
 	int cube_index = 0;
 	vec3 pos_base = pos - vec3(gridSize / 2.0f);
+	// vec3 pos_base = pos;
 	for (int i = 0; i < 8; ++i) {
 		if (offsetSphereFunction(pos_base + cubeDiffs[i]) < 0.0f) {
 			cube_index = cube_index | (1 << i);
@@ -45,6 +48,7 @@ int triTableValue(int i, int j)
 vec3 getInterpedVetex(vec3 pos, int diff_i1, int diff_i2)
 {
 	vec3 pos_base = pos - vec3(gridSize / 2.0f);
+	// vec3 pos_base = pos;
 	vec3 p1 = pos_base + cubeDiffs[diff_i1];
 	vec3 p2 = pos_base + cubeDiffs[diff_i2];
 	float l1 = offsetSphereFunction(p1);
@@ -69,14 +73,22 @@ int cube_diff_indices[12 * 2] = int[](
 
 void main()
 {
+	mat4 MVM = inverse(cameraTransform);
 	vec4 pos = gl_in[0].gl_Position;
-	fcolor = vec3(1.0, 0.0, 0.0);
+	fcolor = vec3(1.0, 1.0, 0.0);
+	gl_Position = projectionMatrix * MVM * pos;
 
 	int cube_index = getCubeIndex(pos.xyz);
 	int edge = edgeTableValue(cube_index);
-	if (edge == 0) {
+	if (edge == 0 || edge == 1) {
 		return;
 	}
+	// if (edge == 1) {
+	// 	fcolor = vec3(1.0, 0.0, 1.0);
+	// } else {
+	// 	fcolor = vec3(0.0, 0.0, 0.0);
+	// }
+	// EmitVertex();
 
 	vec3 vertices[12];
 	for (int i = 0; i < 12; ++i) {
@@ -85,10 +97,12 @@ void main()
 					pos.xyz,
 					cube_diff_indices[i * 2], 
 					cube_diff_indices[i * 2 + 1]);
+			// vec4 w_pos = MVM * vec4(vertices[i], 1.0);
+			// gl_Position = projectionMatrix * w_pos;
+			// EmitVertex();
 		}
 	}
 
-	mat4 MVM = inverse(cameraTransform);
 	for (int i = 0; i < 16 && triTableValue(cube_index, i) != -1; 
 			i += 3) {
 		for (int j = 0; j < 3; ++j) {

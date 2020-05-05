@@ -83,9 +83,13 @@ int main(int argc, char** argv)
 
     // Accept fragment if it closer to the camera than the former one
     glDepthFunc(GL_LESS);
-    glDisable(GL_CULL_FACE);
+    //glDisable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK); 
 
     glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_TRUE);
+
+    glPointSize(6.0f);
 
     Engine::Camera main_camera;
     glViewport(0, 0, g_framebuffer_width, g_framebuffer_height);
@@ -96,7 +100,7 @@ int main(int argc, char** argv)
     cam_orientation = glm::rotate(cam_orientation, glm::radians(-30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     main_camera.SetOrientation(cam_orientation);
 
-    float grid_size = 0.4f;
+    float grid_size = 0.25f;
 
     HullMaterial hull_material;
     hull_material.CreateMaterial();
@@ -104,7 +108,7 @@ int main(int argc, char** argv)
 
 	Geometry geometry = Geometry();
     
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     Engine::Mesh grid_mesh;
     grid_mesh.SetDrawMode(GL_POINTS);
     geometry.GenerateGrid(&grid_mesh, glm::vec3(-2, -2, -2), glm::vec3(2, 2, 2), grid_size);

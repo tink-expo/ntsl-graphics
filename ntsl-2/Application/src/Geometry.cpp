@@ -41,6 +41,7 @@ void Geometry::GenerateGrid(Engine::Mesh* mesh,
 
     mesh->SetNumElements(num_elems);
 	mesh->CreateMesh();
+    std::cout << num_elems << std::endl;
 
     return;
 }
