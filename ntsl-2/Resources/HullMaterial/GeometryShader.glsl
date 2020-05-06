@@ -24,7 +24,7 @@ vec3 simpleBrush(vec3 pos, vec3 center, vec3 force)
 float offsetSphereFunction(vec3 pos)
 {
 	float offset = gridSize * sqrt(3.0);
-	float radius = 1.0;
+	float radius = 4.0;
 	vec3 center = vec3(0, 0, -20);
 	return length(pos - center) - (radius + offset);
 }

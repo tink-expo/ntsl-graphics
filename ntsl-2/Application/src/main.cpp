@@ -35,18 +35,6 @@ float PI = (float) M_PI;
 
 int main(int argc, char** argv)
 {   
-    // glm::mat2 m(glm::vec2(0, 0), glm::vec2(1, 2));
-    // //m = inverse(m);
-    // for (int i = 0; i < 2; ++i) {
-    //     for (int j = 0; j < 2; ++j) {
-    //         std::cout << m[i][j] << " ";
-    //     }
-    //     std::cout << std::endl;
-    // }
-    // glm::vec2 r = m * glm::vec2(1, 2);
-    // std::cout << r[0] << " " << r[1] << std::endl;
-    // return 0;
-    
     if (argc < 2) {
         return -1;
     }
@@ -108,7 +96,7 @@ int main(int argc, char** argv)
     float ratio = g_framebuffer_width / (float)g_framebuffer_height;
     main_camera.SetProjection(ratio, 60.0f, 0.01f, 1000.0f);
     
-    float grid_size = 1.0f;
+    float grid_size = 0.25f;
 
     HullMaterial hull_material;
     hull_material.CreateMaterial();
@@ -119,7 +107,7 @@ int main(int argc, char** argv)
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     Engine::Mesh grid_mesh;
     grid_mesh.SetDrawMode(GL_POINTS);
-    geometry.GenerateGrid(&grid_mesh, glm::vec3(-50, -50, -50), glm::vec3(50, 50, 50), grid_size);
+    geometry.GenerateGrid(&grid_mesh, glm::vec3(-20, -20, -30), glm::vec3(20, 20, -10), grid_size);
     Engine::RenderObject grid(&grid_mesh, &hull_material);
 
     float prev_time = 0;
@@ -133,6 +121,7 @@ int main(int argc, char** argv)
         float total_time = (float)glfwGetTime();
         float elapsed_time = total_time - prev_time;
         prev_time = total_time;
+        // std::cout << elapsed_time << std::endl;
 
         glfwGetFramebufferSize(g_window, &width, &height);
 

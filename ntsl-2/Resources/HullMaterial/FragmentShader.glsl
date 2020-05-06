@@ -35,7 +35,7 @@ mat3 estimateJacobian(vec3 pos, vec3 force)
 
 float sphereFunction(vec3 pos)
 {
-	float radius = 1.0;
+	float radius = 4.0;
 	return length(pos - center) - radius;
 }
 
@@ -87,9 +87,12 @@ vec3 estimateNormal(vec3 p) {
     ));
 }
 
+vec3 sphereNormal(vec3 p) {
+    return normalize(p - center);
+}
+
 vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 view_dir,
-                          vec3 lightPos, vec3 lightIntensity) {
-    vec3 N = estimateNormal(p);
+                          vec3 lightPos, vec3 lightIntensity, vec3 N) {
     vec3 L = normalize(lightPos - p);
     vec3 V = -view_dir;
     vec3 R = normalize(reflect(-L, N));
@@ -110,7 +113,7 @@ vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 view_dir
     return lightIntensity * (k_d * dotLN + k_s * pow(dotRV, alpha));
 }
 
-vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 view_dir) {
+vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 view_dir, vec3 normal) {
     const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
     vec3 color = ambientLight * k_a;
     
@@ -119,7 +122,7 @@ vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 v
     
     color += phongContribForLight(k_d, k_s, alpha, p, view_dir,
                                   light1Pos,
-                                  light1Intensity);
+                                  light1Intensity, normal);
     return color;
 }
 
@@ -134,16 +137,23 @@ void main()
     vec4 ntsl_res = ntsl(upos, view_deformed, MIN_DIST, MAX_DIST, o_force);
     if (ntsl_res.w == 0) {
         output_color = vec4(0, 0, 0, 1);
-        return;
+
+    } else {
+        vec3 u_res = ntsl_res.xyz;
+        vec3 d_res = simpleBrush(u_res, o_force);
+
+        mat3 inv_jacobian = inverse(estimateJacobian(u_res, o_force));
+        vec3 normal = normalize(transpose(inv_jacobian) * sphereNormal(u_res));
+        // vec3 normal = sphereNormal(d_res);
+        
+        vec3 K_a = vec3(0.2, 0.2, 0.2);
+        vec3 K_d = vec3(0.2, 0.2, 0.7);
+        vec3 K_s = vec3(1);
+        float shininess = 10.0;
+        vec3 color = phongIllumination(K_a, K_d, K_s, shininess, d_res, view_deformed, normal);
+
+        output_color = vec4(color, 1.0);
     }
 
-    vec3 p = simpleBrush(ntsl_res.xyz, o_force);
-    
-    vec3 K_a = vec3(0, 0, 0);
-    vec3 K_d = vec3(0.7, 0.2, 0.2);
-    vec3 K_s = vec3(0.5);
-    float shininess = 10.0;
-    vec3 color = phongIllumination(K_a, K_d, K_s, shininess, p, view_deformed);
-
-    output_color = vec4(color, 1.0);
+    // output_color = vec4(1);
 }
