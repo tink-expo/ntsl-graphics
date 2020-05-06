@@ -33,40 +33,8 @@ int g_framebuffer_height = 768;
 
 float PI = (float) M_PI;
 
-glm::mat3 rrt(glm::vec3 r)
-{
-	return glm::mat3(r.x * r, r.y * r, r.z * r);
-}
-
-glm::vec3 kelvinletsBrush(glm::vec3 pos, glm::vec3 force)
-{
-	// Constants.
-	float PI = 3.14159265;
-	float poisson_ratio = 0.4;
-
-	float elastic_shear_modulus = 1.0;
-	float radius_scale = 3.0;
-
-	float a = 1.0 / (4.0 * PI * elastic_shear_modulus);
-	float b = a / (4.0 * (1 - poisson_ratio));
-	// float c = 2.0 / (3.0 * a - 2.0 * b);
-	
-	// x0 = (0, 0, 0)
-	glm::vec3 vr = pos;
-	// force = glm::normalize(force);
-
-	float re = sqrt(pow(length(vr), 2.0) + pow(radius_scale, 2.0));
-	float coff_1 = (a - b) / re;
-	float coff_2 = b / pow(re, 3.0);
-	float coff_3 = a * pow(radius_scale, 2.0) / (2.0 * pow(re, 3.0));
-	// glm::mat3 kr = coff_1 * glm::mat3(1.0) + coff_2 * rrt(vr) + coff_3 * glm::mat3(1.0);
-	// return pos + kr * force;
-    glm::vec3 diff = (coff_1 + coff_3) * force + 10 * coff_2 * glm::dot(vr, force);
-    return pos + diff;
-}
-
 int main(int argc, char** argv)
-{
+{   
     if (argc < 2) {
         return -1;
     }
@@ -127,11 +95,7 @@ int main(int argc, char** argv)
     glViewport(0, 0, g_framebuffer_width, g_framebuffer_height);
     float ratio = g_framebuffer_width / (float)g_framebuffer_height;
     main_camera.SetProjection(ratio, 60.0f, 0.01f, 1000.0f);
-    main_camera.SetPosition(glm::vec3(0, 5, 100));
-    glm::mat4 cam_orientation = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    cam_orientation = glm::rotate(cam_orientation, glm::radians(-30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    main_camera.SetOrientation(cam_orientation);
-
+    
     float grid_size = 1.0f;
 
     HullMaterial hull_material;
@@ -140,7 +104,7 @@ int main(int argc, char** argv)
 
 	Geometry geometry = Geometry();
     
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     Engine::Mesh grid_mesh;
     grid_mesh.SetDrawMode(GL_POINTS);
     geometry.GenerateGrid(&grid_mesh, glm::vec3(-50, -50, -50), glm::vec3(50, 50, 50), grid_size);

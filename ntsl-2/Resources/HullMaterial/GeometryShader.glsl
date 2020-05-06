@@ -1,6 +1,5 @@
 #version 410 core
 
-uniform mat4 cameraTransform;
 uniform mat4 projectionMatrix;
 
 uniform isampler2D edgeTableTex;
@@ -11,12 +10,7 @@ uniform vec3 cubeDiffs[8];
 layout (points) in;
 layout (triangle_strip, max_vertices = 15) out;
 
-out vec3 fcolor;
-
-mat3 rrt(vec3 r)
-{
-	return mat3(r.x * r, r.y * r, r.z * r);
-}
+out vec4 undeformed_vpos;
 
 vec3 SimpleBrush(vec3 pos, vec3 center, vec3 force)
 {
@@ -27,11 +21,10 @@ vec3 SimpleBrush(vec3 pos, vec3 center, vec3 force)
 
 float offsetSphereFunction(vec3 pos)
 {
-	// vec3 deformed_pos = kelvinletsBrush(pos, vec3(1, 1, 0));
-	// vec3 deformed_pos = pos + vec3(1, 1, 0);
 	float offset = gridSize * sqrt(3.0);
-	float radius = 10.0;
-	return length(pos) - (radius + offset);
+	float radius = 1.0;
+	vec3 center = vec3(0, 0, -20);
+	return length(pos - center) - (radius + offset);
 }
 
 int getCubeIndex(vec3 pos)
@@ -83,9 +76,7 @@ int cube_diff_indices[12 * 2] = int[](
 
 void main()
 {
-	mat4 MVM = inverse(cameraTransform);
 	vec4 pos = gl_in[0].gl_Position;
-	fcolor = vec3(1.0, 1.0, 0.0);
 
 	int cube_index = getCubeIndex(pos.xyz);
 	int edge = edgeTableValue(cube_index);
@@ -107,9 +98,14 @@ void main()
 			i += 3) {
 		for (int j = 0; j < 3; ++j) {
 			int tri = triTableValue(cube_index, i + j);
-			vec3 hull_vpos = vertices[tri];
-			hull_vpos = SimpleBrush(hull_vpos, vec3(0, 0, 0), vec3(1, 1, 0));
-			gl_Position = projectionMatrix * (MVM * vec4(hull_vpos, 1));
+			vec3 undeformed_xyz = vertices[tri];
+			vec3 deformed_xyz = SimpleBrush(undeformed_xyz, vec3(0, 0, -10), vec3(1, 1, 0));
+			undeformed_vpos = vec4(undeformed_xyz, 1.0);
+			vec4 deformed_vpos = vec4(deformed_xyz, 1.0);
+
+			// gl_Position = projectionMatrix * deformed_vpos;
+			gl_Position = projectionMatrix * undeformed_vpos;
+
 			EmitVertex();
 		}
 		EndPrimitive();
