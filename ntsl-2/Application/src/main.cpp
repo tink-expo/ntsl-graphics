@@ -35,6 +35,18 @@ float PI = (float) M_PI;
 
 int main(int argc, char** argv)
 {   
+    // glm::mat2 m(glm::vec2(0, 0), glm::vec2(1, 2));
+    // //m = inverse(m);
+    // for (int i = 0; i < 2; ++i) {
+    //     for (int j = 0; j < 2; ++j) {
+    //         std::cout << m[i][j] << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+    // glm::vec2 r = m * glm::vec2(1, 2);
+    // std::cout << r[0] << " " << r[1] << std::endl;
+    // return 0;
+    
     if (argc < 2) {
         return -1;
     }
@@ -83,7 +95,7 @@ int main(int argc, char** argv)
 
     // Accept fragment if it closer to the camera than the former one
     glDepthFunc(GL_LESS);
-    glDisable(GL_CULL_FACE);
+    // glDisable(GL_CULL_FACE);
     glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK); 
 
