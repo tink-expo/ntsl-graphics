@@ -11,6 +11,7 @@ layout (points) in;
 layout (triangle_strip, max_vertices = 15) out;
 
 out vec4 undeformed_vpos;
+out vec3 fcolor;
 
 vec3 SimpleBrush(vec3 pos, vec3 center, vec3 force)
 {
@@ -96,7 +97,7 @@ void main()
 
 	for (int i = 0; i < 16 && triTableValue(cube_index, i) != -1; 
 			i += 3) {
-		for (int j = 0; j < 3; ++j) {
+		for (int j = 2; j >= 0; --j) {
 			int tri = triTableValue(cube_index, i + j);
 			vec3 undeformed_xyz = vertices[tri];
 			vec3 deformed_xyz = SimpleBrush(undeformed_xyz, vec3(0, 0, -10), vec3(1, 1, 0));

@@ -1,5 +1,6 @@
 #version 410 core
 
+in vec3 fcolor;
 in vec4 undeformed_vpos;
 out vec4 output_color;
 
@@ -88,21 +89,20 @@ vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 v
 
 void main() 
 {
-    vec3 view_dir = normalize(undeformed_vpos.xyz);
-    float dist = shortestDistanceToSurface(undeformed_vpos.xyz, view_dir, MIN_DIST, MAX_DIST);
+    vec4 ov = undeformed_vpos;
+    
+    vec3 view_dir = normalize(ov.xyz);
+    
+    float dist = shortestDistanceToSurface(ov.xyz, view_dir, MIN_DIST, MAX_DIST);
     
     vec3 K_a = vec3(0, 0, 0);
     vec3 K_d = vec3(0.7, 0.2, 0.2);
-    vec3 K_s = vec3(0, 0, 0);
+    vec3 K_s = vec3(0.5);
     float shininess = 10.0;
 
-    vec3 p = undeformed_vpos.xyz + dist * view_dir;
+    vec3 p = ov.xyz + dist * view_dir;
+    
     
     vec3 color = phongIllumination(K_a, K_d, K_s, shininess, p, view_dir);
-    //color = vec3(1, 1, 1);
-    
-    vec4 ov = undeformed_vpos;
-    ov.z *= (-1);
-
     output_color = vec4(color, 1.0);
 }
