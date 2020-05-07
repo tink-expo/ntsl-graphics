@@ -14,8 +14,11 @@ const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
 const float PI = 3.14159;
 const float NATU_E = 2.71828;
+const float FLOAT_MIN = 1e-37;
 
 vec3 center = vec3(0, 0, -20);
+
+int jt = 0;
 
 float normalDistribution(float sigma, float sq_x)
 {
@@ -34,7 +37,7 @@ vec3 simpleBrush(vec3 pos, vec3 force)
     }
     float sq_sin = pow(length(diff), 2) - 
             pow(d_dot_f, 2) / pow(length(force), 2);
-    return pos + force * 3 * normalDistribution(0.4, sq_sin);
+    return pos + force * 5 * normalDistribution(0.8, sq_sin);
 }
 
 mat3 estimateJacobian(vec3 pos, vec3 force)
@@ -46,6 +49,8 @@ mat3 estimateJacobian(vec3 pos, vec3 force)
     vec3 grad_x = (simpleBrush(pos + diff_x, force) - simpleBrush(pos - diff_x, force)) / (2 * EPSILON);
     vec3 grad_y = (simpleBrush(pos + diff_y, force) - simpleBrush(pos - diff_y, force)) / (2 * EPSILON);
     vec3 grad_z = (simpleBrush(pos + diff_z, force) - simpleBrush(pos - diff_z, force)) / (2 * EPSILON);
+
+    ++jt;
 
     return mat3(grad_x, grad_y, grad_z);
 }
@@ -61,21 +66,61 @@ float sceneSDF(vec3 pos)
     return sphereFunction(pos);
 }
 
-// vec3 ode23(vec3 ipos, float duration)
-// {
-//     // TODO: Check this
-//     float h = duration / 5;
-//     float t = h;
-//     vec3 k1;
-//     vec3 k2;
-//     vec3 k3;
-//     vec3 k4;
-//     vec3 y = ipos;
-//     while (t < duration) {
+vec3 ode_eval(vec3 pos, vec3 w, vec3 force)
+{
+    return normalize(inverse(estimateJacobian(pos, force)) * w);
+}
 
-//         t += h;
-//     }
-// }
+
+float errorEstimate(vec3 k, vec3 y, float threshold)
+{
+    vec3 r_v = abs(k / (max(abs(y), threshold)));
+    float r = max(r_v.x, max(r_v.y, r_v.z)) + FLOAT_MIN; 
+    return r;
+}
+
+vec3 ode23(vec3 ipos, vec3 w, vec3 force, float t_span)
+{
+    float rtol = 1e-2;
+    float atol = 1e-4;
+    float threshold = atol / rtol;
+
+    float hmax = 0.1 * t_span;
+    float t = 0;
+    vec3 y = ipos;
+
+    vec3 k1 = ode_eval(y, w, force);
+    float r = errorEstimate(k1, y, threshold);
+    float h = 0.8 * pow(rtol, 1.0 / 3.0) / r;
+
+    while (t < t_span) {
+        float hmin = 16 * FLOAT_MIN * abs(t);
+        h = max(min(h, hmax), hmin);
+        if (1.1 * h >= t_span - t) {
+            h = t_span - t;
+        }
+
+        vec3 k2 = ode_eval(y + (h / 2.0) * k1, w, force);
+        vec3 k3 = ode_eval(y + (h * 3.0 / 4.0) * k2, w, force);
+        float t_next = t + h;
+        vec3 y_next = y + (h * 2.0 / 9.0) * k1 + 
+                (h / 3.0) * k2 + (h * 4.0 / 9.0) * k3;
+        vec3 k4 = ode_eval(y_next, w, force);
+
+        vec3 e = (-5 * k1 + 6 * k2 + 8 * k3 - 9 * k4) * h / 72.0;
+        float er = errorEstimate(e, max(abs(y), abs(y_next)), threshold);
+        if (er <= rtol) {
+            t = t_next;
+            y = y_next;
+            k1 = k4;
+        }
+        h = h * min(5.0, 0.8 * pow(rtol / er, 1.0 / 3.0));
+        if (h <= hmin) {
+            break;
+        }
+    }
+    return y;
+}
 
 vec4 ntsl(vec3 ipos, vec3 w, float start, float end, vec3 force)
 {
@@ -86,8 +131,7 @@ vec4 ntsl(vec3 ipos, vec3 w, float start, float end, vec3 force)
         float s_undeformed = abs(sceneSDF(pos));
         s_sum += s_undeformed;
         float u_epsilon = s_sum * (s_sum * rad_pixel * determinant(inv_jacobian));
-        // float u_epsilon = s_sum * rad_pixel;
-        // Termination.
+
         if (s_undeformed < u_epsilon) {
             return vec4(pos, 1);
         }
@@ -99,29 +143,13 @@ vec4 ntsl(vec3 ipos, vec3 w, float start, float end, vec3 force)
             vec3 w_undeformed = normalize(inv_jacobian * w);
             pos = pos + s_undeformed * w_undeformed;
         } else {
-            // pos = ode23(pos, s_undeformed);
+            // pos = ode23(pos, w, force, s_undeformed);
             vec3 w_undeformed = normalize(inv_jacobian * w);
             pos = pos + s_undeformed * w_undeformed;
         }
     }
 
     return vec4(0);
-    // float depth = start;
-    // vec3 pos = ipos;
-    // for (int i = 0; i < MAX_MARCHING_STEPS; ++i) {
-    //     mat3 inv_jacobian = inverse(estimateJacobian(pos, force));
-    //     vec3 w_undeformed = normalize(inv_jacobian * w);
-    //     float s_undeformed = sceneSDF(pos);
-    //     pos = pos + s_undeformed * w_undeformed;
-    //     if (s_undeformed < EPSILON) {
-    //         return vec4(pos, 1);
-    //     }
-    //     depth += s_undeformed;
-    //     if (depth >= end) {
-    //         return vec4(0);
-    //     }
-    // }
-    // return vec4(0);
 }
 
 vec3 estimateNormal(vec3 p) {
@@ -179,7 +207,8 @@ void main()
     vec4 ntsl_res = ntsl(upos, view_deformed, MIN_DIST, MAX_DIST, i_force);
     if (ntsl_res.w == 0) {
         output_color = vec4(0, 0, 0, 1);
-        output_color = vec4(1);
+        // output_color.r = jt * 0.01;
+        // output_color = vec4(1);
 
     } else {
         vec3 u_res = ntsl_res.xyz;
@@ -192,11 +221,11 @@ void main()
         // vec3 normal = sphereNormal(d_res);
         
         vec3 K_a = vec3(0.2, 0.2, 0.2);
-        vec3 K_d = vec3(0.2, 0.2, 0.7);
+        vec3 K_d = vec3(0, 0.2, 0.7);
         vec3 K_s = vec3(1);
         float shininess = 10.0;
         vec3 color = phongIllumination(K_a, K_d, K_s, shininess, d_res, view_deformed, normal);
-
+        // color.r = jt * 0.01;
         output_color = vec4(color, 1.0);
     }
     // output_color = vec4(1);

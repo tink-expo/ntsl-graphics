@@ -27,10 +27,11 @@
 #define _USE_MATH_DEFINES
 
 GLFWwindow* g_window;
-float g_window_width = 1024.f / 2;
-float g_window_height = 768.f / 2;
-int g_framebuffer_width = 1024 / 2;
-int g_framebuffer_height = 768 / 2;
+float g_size_frac = 0.8;
+float g_window_width = 1024.f * g_size_frac;
+float g_window_height = 768.f * g_size_frac;
+int g_framebuffer_width = 1024 * g_size_frac;
+int g_framebuffer_height = 768 * g_size_frac;
 
 float PI = (float) M_PI;
 

@@ -36,7 +36,7 @@ vec3 simpleBrush(vec3 pos, vec3 force)
     }
     float sq_sin = pow(length(diff), 2) - 
             pow(d_dot_f, 2) / pow(length(force), 2);
-    return pos + force * 3 * normalDistribution(0.4, sq_sin);
+    return pos + force * 5 * normalDistribution(0.8, sq_sin);
 }
 
 float offsetSphereFunction(vec3 pos)
