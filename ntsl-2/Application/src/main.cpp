@@ -27,10 +27,10 @@
 #define _USE_MATH_DEFINES
 
 GLFWwindow* g_window;
-float g_window_width = 1024.f;
-float g_window_height = 768.f;
-int g_framebuffer_width = 1024;
-int g_framebuffer_height = 768;
+float g_window_width = 1024.f / 2;
+float g_window_height = 768.f / 2;
+int g_framebuffer_width = 1024 / 2;
+int g_framebuffer_height = 768 / 2;
 
 float PI = (float) M_PI;
 
@@ -74,7 +74,7 @@ glm::vec3 calcIforce(double s_mouse_x, double s_mouse_y)
             std::min(screen_height / 2.0f, n_mouse_x));
     n_mouse_x /= (screen_height / 2.0f);
 
-    return glm::vec3(n_mouse_x, n_mouse_y, 0);
+    return glm::vec3(n_mouse_x, n_mouse_y, 0.2);
 }
 
 int main(int argc, char** argv)
@@ -144,7 +144,7 @@ int main(int argc, char** argv)
             (main_p_data.zNear * tan(glm::radians(main_p_data.fov / 2)))
             / (float) g_framebuffer_height;
 
-    float grid_size = 0.25f;
+    float grid_size = 0.5f;
 
     HullMaterial hull_material;
     hull_material.CreateMaterial();

@@ -12,14 +12,29 @@ const int MAX_MARCHING_STEPS = 255;
 const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
+const float PI = 3.14159;
+const float NATU_E = 2.71828;
 
 vec3 center = vec3(0, 0, -20);
 
+float normalDistribution(float sigma, float sq_x)
+{
+	return pow(NATU_E, -sq_x / (2 * sigma * sigma)) / (sigma * sqrt(2 * PI));
+}
+
 vec3 simpleBrush(vec3 pos, vec3 force)
 {
+	// vec3 diff = pos - center;
+	// float factor = max(dot(diff, force), 0.0);
+	// return pos + factor * force;
 	vec3 diff = pos - center;
-	float factor = max(dot(diff, force), 0.0);
-	return pos + factor * force;
+    float d_dot_f = dot(diff, force);
+    if (d_dot_f <= 0) {
+        return pos;
+    }
+    float sq_sin = pow(length(diff), 2) - 
+            pow(d_dot_f, 2) / pow(length(force), 2);
+    return pos + force * 3 * normalDistribution(0.4, sq_sin);
 }
 
 mat3 estimateJacobian(vec3 pos, vec3 force)
@@ -46,10 +61,21 @@ float sceneSDF(vec3 pos)
     return sphereFunction(pos);
 }
 
-vec3 ode23(vec3 ipos, float duration)
-{
-    return vec3(0);
-}
+// vec3 ode23(vec3 ipos, float duration)
+// {
+//     // TODO: Check this
+//     float h = duration / 5;
+//     float t = h;
+//     vec3 k1;
+//     vec3 k2;
+//     vec3 k3;
+//     vec3 k4;
+//     vec3 y = ipos;
+//     while (t < duration) {
+
+//         t += h;
+//     }
+// }
 
 vec4 ntsl(vec3 ipos, vec3 w, float start, float end, vec3 force)
 {
@@ -75,7 +101,7 @@ vec4 ntsl(vec3 ipos, vec3 w, float start, float end, vec3 force)
         } else {
             // pos = ode23(pos, s_undeformed);
             vec3 w_undeformed = normalize(inv_jacobian * w);
-            pos = pos + s_undeformed * w_undeformed;
+            pos = pos + s_undeformed * w_undeformed / 10;
         }
     }
 
@@ -104,13 +130,10 @@ vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 view_dir
     float dotRV = dot(R, V);
     
     if (dotLN < 0.0) {
-        // Light not visible from this point on the surface
         return vec3(0.0, 0.0, 0.0);
     } 
     
     if (dotRV < 0.0) {
-        // Light reflection in opposite direction as viewer, apply only diffuse
-        // component
         return lightIntensity * (k_d * dotLN);
     }
     return lightIntensity * (k_d * dotLN + k_s * pow(dotRV, alpha));
@@ -140,11 +163,13 @@ void main()
     vec4 ntsl_res = ntsl(upos, view_deformed, MIN_DIST, MAX_DIST, i_force);
     if (ntsl_res.w == 0) {
         output_color = vec4(0, 0, 0, 1);
-        // output_color = vec4(1);
+        output_color = vec4(1);
 
     } else {
         vec3 u_res = ntsl_res.xyz;
         vec3 d_res = simpleBrush(u_res, i_force);
+        u_res = upos;
+        d_res = dpos;
 
         mat3 inv_jacobian = inverse(estimateJacobian(u_res, i_force));
         vec3 normal = normalize(transpose(inv_jacobian) * sphereNormal(u_res));

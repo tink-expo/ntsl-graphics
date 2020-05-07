@@ -14,13 +14,29 @@ layout (triangle_strip, max_vertices = 15) out;
 out vec4 undeformed_vpos;
 out vec4 deformed_vpos;
 
+const float PI = 3.14159;
+const float NATU_E = 2.71828;
+
 vec3 center = vec3(0, 0, -20);
+
+float normalDistribution(float sigma, float sq_x)
+{
+	return pow(NATU_E, -sq_x / (2 * sigma * sigma)) / (sigma * sqrt(2 * PI));
+}
 
 vec3 simpleBrush(vec3 pos, vec3 force)
 {
+	// vec3 diff = pos - center;
+	// float factor = max(dot(diff, force), 0.0);
+	// return pos + factor * force;
 	vec3 diff = pos - center;
-	float factor = max(dot(diff, force), 0.0);
-	return pos + factor * force;
+    float d_dot_f = dot(diff, force);
+    if (d_dot_f <= 0) {
+        return pos;
+    }
+    float sq_sin = pow(length(diff), 2) - 
+            pow(d_dot_f, 2) / pow(length(force), 2);
+    return pos + force * 3 * normalDistribution(0.4, sq_sin);
 }
 
 float offsetSphereFunction(vec3 pos)
