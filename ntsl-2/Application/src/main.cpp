@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <cstdio>
+#include <algorithm>
 
 // include opengl extension and application library
 #include <GL/glew.h>
@@ -32,6 +33,49 @@ int g_framebuffer_width = 1024;
 int g_framebuffer_height = 768;
 
 float PI = (float) M_PI;
+
+double mouse_x = 0;
+double mouse_y = 0;
+bool mouse_pressed = false;
+
+static void mouseButtonCallback(GLFWwindow* a_window, int a_button, int a_action, int a_mods)
+{
+	if (a_button == GLFW_MOUSE_BUTTON_LEFT)
+	{
+		if (a_action == GLFW_PRESS) {
+			mouse_pressed = true;
+        } else if (a_action == GLFW_RELEASE) {
+			mouse_pressed = false;
+        }
+	}
+}
+
+static void cursorPosCallback(GLFWwindow* a_window, double a_xpos, double a_ypos)
+{
+	mouse_x = a_xpos;
+	mouse_y = a_ypos;
+}
+
+glm::vec3 calcIforce(double s_mouse_x, double s_mouse_y)
+{
+    float n_mouse_x;
+    float n_mouse_y;
+
+    float screen_height = g_window_height / 2.0f;
+    float screen_width = g_window_width / 2.0f;
+    
+    n_mouse_y = screen_height - s_mouse_y;
+    n_mouse_y -= screen_height / 2.0f;
+    n_mouse_y /= (screen_height / 2.0f);
+
+    n_mouse_x = s_mouse_x;
+    n_mouse_x -= screen_width / 2.0f;
+    n_mouse_x = std::max(-screen_height / 2.0f, 
+            std::min(screen_height / 2.0f, n_mouse_x));
+    n_mouse_x /= (screen_height / 2.0f);
+
+    return glm::vec3(n_mouse_x, n_mouse_y, 0);
+}
 
 int main(int argc, char** argv)
 {   
@@ -83,24 +127,28 @@ int main(int argc, char** argv)
 
     // Accept fragment if it closer to the camera than the former one
     glDepthFunc(GL_LESS);
-    // glDisable(GL_CULL_FACE);
     glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK); 
+	glCullFace(GL_BACK);
 
-    glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_TRUE);
-
-    glPointSize(6.0f);
+	glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_TRUE);
+	glfwSetMouseButtonCallback(g_window, mouseButtonCallback);
+	glfwSetCursorPosCallback(g_window, cursorPosCallback);
 
     Engine::Camera main_camera;
     glViewport(0, 0, g_framebuffer_width, g_framebuffer_height);
     float ratio = g_framebuffer_width / (float)g_framebuffer_height;
     main_camera.SetProjection(ratio, 60.0f, 0.01f, 1000.0f);
     
+    const auto& main_p_data = main_camera.GetProjection();
+    float rad_pixel = 
+            (main_p_data.zNear * tan(glm::radians(main_p_data.fov / 2)))
+            / (float) g_framebuffer_height;
+
     float grid_size = 0.25f;
 
     HullMaterial hull_material;
     hull_material.CreateMaterial();
-    marchingCubesInitialize(&hull_material, grid_size);
+    marchingCubesInitialize(&hull_material, grid_size, rad_pixel);
 
 	Geometry geometry = Geometry();
     
@@ -122,6 +170,8 @@ int main(int argc, char** argv)
         float elapsed_time = total_time - prev_time;
         prev_time = total_time;
 
+        // std::cout << elapsed_time << std::endl;
+
         glfwGetFramebufferSize(g_window, &width, &height);
 
         if (width != g_framebuffer_width || height != g_framebuffer_height) {
@@ -132,6 +182,10 @@ int main(int argc, char** argv)
 
             glViewport(0, 0, width, height);
             main_camera.SetProjection(width / (float)height, 60.0f, 0.01f, 1000.0f);
+        }
+
+        if (mouse_pressed) {
+            hull_material.UpdateIforce(calcIforce(mouse_x, mouse_y));
         }
         
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

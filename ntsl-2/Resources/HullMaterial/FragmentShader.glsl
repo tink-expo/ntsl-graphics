@@ -1,8 +1,10 @@
 #version 410 core
 
+uniform float rad_pixel;
+uniform vec3 i_force;
+
 in vec4 undeformed_vpos;
 in vec4 deformed_vpos;
-in vec3 o_force;
 
 out vec4 output_color;
 
@@ -44,39 +46,40 @@ float sceneSDF(vec3 pos)
     return sphereFunction(pos);
 }
 
+vec3 ode23(vec3 ipos, float duration)
+{
+    return vec3(0);
+}
+
 vec4 ntsl(vec3 ipos, vec3 w, float start, float end, vec3 force)
 {
-    float depth = start;
+    float s_sum = start;
     vec3 pos = ipos;
     for (int i = 0; i < MAX_MARCHING_STEPS; ++i) {
         mat3 inv_jacobian = inverse(estimateJacobian(pos, force));
-        vec3 w_undeformed = normalize(inv_jacobian * w);
-        float s_undeformed = sceneSDF(pos) / 10;
-        pos = pos + s_undeformed * w_undeformed;
-        if (s_undeformed < EPSILON) {
+        float s_undeformed = sceneSDF(pos);
+        s_sum += s_undeformed;
+        float u_epsilon = s_sum * (rad_pixel * determinant(inv_jacobian));
+
+        // Termination.
+        if (s_undeformed < u_epsilon) {
             return vec4(pos, 1);
         }
-        depth += s_undeformed;
-        if (depth >= end) {
+        if (s_sum >= end) {
             return vec4(0);
         }
-    }
-}
 
-float shortestDistanceToSurface(vec3 ipos, vec3 marchingDirection, float start, float end) 
-{
-    float depth = start;
-    for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
-        float dist = sceneSDF(ipos + depth * marchingDirection);
-        if (dist < EPSILON) {
-			return depth;
-        }
-        depth += dist;
-        if (depth >= end) {
-            return end;
+        if (s_undeformed < 3 * u_epsilon) {
+            vec3 w_undeformed = normalize(inv_jacobian * w);
+            pos = pos + s_undeformed * w_undeformed;
+        } else {
+            // pos = ode23(pos, s_undeformed);
+            vec3 w_undeformed = normalize(inv_jacobian * w);
+            pos = pos + s_undeformed * w_undeformed;
         }
     }
-    return end;
+
+    return vec4(0);
 }
 
 vec3 estimateNormal(vec3 p) {
@@ -134,16 +137,16 @@ void main()
     vec3 view_undeformed = normalize(upos);
     vec3 view_deformed = normalize(dpos);
 
-    vec4 ntsl_res = ntsl(upos, view_deformed, MIN_DIST, MAX_DIST, o_force);
+    vec4 ntsl_res = ntsl(upos, view_deformed, MIN_DIST, MAX_DIST, i_force);
     if (ntsl_res.w == 0) {
         output_color = vec4(0, 0, 0, 1);
         // output_color = vec4(1);
 
     } else {
         vec3 u_res = ntsl_res.xyz;
-        vec3 d_res = simpleBrush(u_res, o_force);
+        vec3 d_res = simpleBrush(u_res, i_force);
 
-        mat3 inv_jacobian = inverse(estimateJacobian(u_res, o_force));
+        mat3 inv_jacobian = inverse(estimateJacobian(u_res, i_force));
         vec3 normal = normalize(transpose(inv_jacobian) * sphereNormal(u_res));
         // vec3 normal = sphereNormal(d_res);
         

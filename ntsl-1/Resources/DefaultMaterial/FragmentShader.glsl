@@ -20,6 +20,7 @@ const int MAX_MARCHING_STEPS = 255;
 const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
+const float D_EPSILON = 0.0001;
 
 /**
  * Constructive solid geometry intersection operation on SDF-calculated distances.
@@ -49,7 +50,8 @@ float differenceSDF(float distA, float distB) {
 float cubeSDF(vec3 p) {
     // If d.x < 0, then -1 < p.x < 1, and same logic applies to p.y, p.z
     // So if all components of d are negative, then p is inside the unit cube
-    vec3 d = abs(p) - vec3(0.5, 0.5, 0.5);
+    vec3 center = vec3(-1, -1, -20);
+    vec3 d = abs(p - center) - vec3(1);
     
     // Assuming p is inside the cube, how far is it from the surface?
     // Result will be negative or zero.
@@ -67,7 +69,7 @@ float cubeSDF(vec3 p) {
  */
 float sphereSDF(vec3 p) {
     vec3 center = vec3(0, 0, -20);
-    float radius = 4.0;
+    float radius = 2.0;
     return length(p - center) - radius;
 }
 
@@ -79,10 +81,10 @@ float sphereSDF(vec3 p) {
  * negative indicating inside.
  */
 float sceneSDF(vec3 samplePoint) {
-    // float sphereDist = sphereSDF(samplePoint / 1.2) * 1.2;
-    // float cubeDist = cubeSDF(samplePoint);
-    // return intersectSDF(cubeDist, sphereDist);
-    return sphereSDF(samplePoint);
+    float sphereDist = sphereSDF(samplePoint);
+    float cubeDist = cubeSDF(samplePoint);
+    return intersectSDF(cubeDist, sphereDist);
+    // return cubeSDF(samplePoint);
 }
 
 /**
@@ -99,7 +101,7 @@ float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, f
     float depth = start;
     for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
         float dist = sceneSDF(eye + depth * marchingDirection);
-        if (dist < EPSILON) {
+        if (dist < D_EPSILON) {
 			return depth;
         }
         depth += dist;
@@ -242,10 +244,11 @@ void main()
     
     vec3 K_a = vec3(0.2, 0.2, 0.2);
     vec3 K_d = vec3(0.2, 0.2, 0.7);
-    vec3 K_s = vec3(1);
+    vec3 K_s = vec3(0.1);
     float shininess = 10.0;
     
     vec3 color = phongIllumination(K_a, K_d, K_s, shininess, p, eye);
     // viewDir.z *= -1;
+    // color = vec3(1);
     output_color = vec4(color, 1.0);
 }

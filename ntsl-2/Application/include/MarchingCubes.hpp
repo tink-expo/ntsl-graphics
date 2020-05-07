@@ -308,7 +308,7 @@ const short triTable[256][16] =
 	{0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-inline void marchingCubesInitialize(Engine::Material* material, float grid_size)
+inline void marchingCubesInitialize(Engine::Material* material, float grid_size, float rad_pixel)
 {
 	
 	glGenTextures(1, &edge_table_tex);
@@ -337,14 +337,20 @@ inline void marchingCubesInitialize(Engine::Material* material, float grid_size)
 	GLuint programId = material->GetProgram()->GetProgramId();
     glUseProgram(programId);
 
+
 	GLuint location;
+
 	location = glGetUniformLocation(programId, "edgeTableTex");
 	glUniform1i(location, edge_table_unit);
 	location = glGetUniformLocation(programId, "triTableTex");
 	glUniform1i(location, tri_table_unit);
 
+
 	location = glGetUniformLocation(programId, "gridSize");
 	glUniform1f(location, grid_size);
+	location = glGetUniformLocation(programId, "rad_pixel");
+	glUniform1f(location, rad_pixel);
+
 
 	float cube_diff = grid_size;
 

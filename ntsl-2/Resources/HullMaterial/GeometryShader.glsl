@@ -6,13 +6,13 @@ uniform isampler2D edgeTableTex;
 uniform isampler2D triTableTex;
 uniform float gridSize;
 uniform vec3 cubeDiffs[8];
+uniform vec3 i_force;
 
 layout (points) in;
 layout (triangle_strip, max_vertices = 15) out;
 
 out vec4 undeformed_vpos;
 out vec4 deformed_vpos;
-out vec3 o_force;
 
 vec3 center = vec3(0, 0, -20);
 
@@ -97,14 +97,12 @@ void main()
 		}
 	}
 
-	o_force = vec3(1, 1, 0.7);
-
 	for (int i = 0; i < 16 && triTableValue(cube_index, i) != -1; 
 			i += 3) {
 		for (int j = 2; j >= 0; --j) {
 			int tri = triTableValue(cube_index, i + j);
 			vec3 undeformed_xyz = vertices[tri];
-			vec3 deformed_xyz = simpleBrush(undeformed_xyz, o_force);
+			vec3 deformed_xyz = simpleBrush(undeformed_xyz, i_force);
 			undeformed_vpos = vec4(undeformed_xyz, 1.0);
 			deformed_vpos = vec4(deformed_xyz, 1.0);
 
