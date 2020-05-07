@@ -66,7 +66,9 @@ float cubeSDF(vec3 p) {
  * Signed distance function for a sphere centered at the origin with radius 1.0;
  */
 float sphereSDF(vec3 p) {
-    return length(p) - 0.5;
+    vec3 center = vec3(0, 0, -20);
+    float radius = 4.0;
+    return length(p - center) - radius;
 }
 
 /**
@@ -77,9 +79,10 @@ float sphereSDF(vec3 p) {
  * negative indicating inside.
  */
 float sceneSDF(vec3 samplePoint) {
-    float sphereDist = sphereSDF(samplePoint / 1.2) * 1.2;
-    float cubeDist = cubeSDF(samplePoint);
-    return intersectSDF(cubeDist, sphereDist);
+    // float sphereDist = sphereSDF(samplePoint / 1.2) * 1.2;
+    // float cubeDist = cubeSDF(samplePoint);
+    // return intersectSDF(cubeDist, sphereDist);
+    return sphereSDF(samplePoint);
 }
 
 /**
@@ -188,7 +191,7 @@ vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 e
     const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
     vec3 color = ambientLight * k_a;
     
-    vec3 light1Pos = vec3(8.0, 4.0, 12.0);
+    vec3 light1Pos = vec3(0, 0, 0);
     vec3 light1Intensity = vec3(0.8, 0.8, 0.8);
     
     color += phongContribForLight(k_d, k_s, alpha, p, eye,
@@ -219,10 +222,10 @@ mat4 viewMatrix(vec3 eye, vec3 center, vec3 up) {
 
 void main()
 {
-    vec3 viewDir = rayDirection(45.0, u_resolution, gl_FragCoord.xy);
-    vec3 eye = vec3(7.0, 7.0, 7.0);
+    vec3 viewDir = rayDirection(60.0, u_resolution, gl_FragCoord.xy);
+    vec3 eye = vec3(0, 0, 0);
     
-    mat4 viewToWorld = viewMatrix(eye, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
+    mat4 viewToWorld = viewMatrix(eye, vec3(0.0, 0.0, -20), vec3(0.0, 1.0, 0.0));
     
     vec3 worldDir = (viewToWorld * vec4(viewDir, 0.0)).xyz;
     
@@ -237,12 +240,12 @@ void main()
     // The closest point on the surface to the eyepoint along the view ray
     vec3 p = eye + dist * worldDir;
     
-    vec3 K_a = vec3(0, 0, 0);
-    vec3 K_d = vec3(0.7, 0.2, 0.2);
-    vec3 K_s = vec3(0, 0, 0);
+    vec3 K_a = vec3(0.2, 0.2, 0.2);
+    vec3 K_d = vec3(0.2, 0.2, 0.7);
+    vec3 K_s = vec3(1);
     float shininess = 10.0;
     
     vec3 color = phongIllumination(K_a, K_d, K_s, shininess, p, eye);
-    
+    // viewDir.z *= -1;
     output_color = vec4(color, 1.0);
 }

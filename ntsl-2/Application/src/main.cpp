@@ -121,7 +121,6 @@ int main(int argc, char** argv)
         float total_time = (float)glfwGetTime();
         float elapsed_time = total_time - prev_time;
         prev_time = total_time;
-        // std::cout << elapsed_time << std::endl;
 
         glfwGetFramebufferSize(g_window, &width, &height);
 

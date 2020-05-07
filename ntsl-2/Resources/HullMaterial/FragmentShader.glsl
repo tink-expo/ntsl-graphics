@@ -51,7 +51,7 @@ vec4 ntsl(vec3 ipos, vec3 w, float start, float end, vec3 force)
     for (int i = 0; i < MAX_MARCHING_STEPS; ++i) {
         mat3 inv_jacobian = inverse(estimateJacobian(pos, force));
         vec3 w_undeformed = normalize(inv_jacobian * w);
-        float s_undeformed = sceneSDF(pos);
+        float s_undeformed = sceneSDF(pos) / 10;
         pos = pos + s_undeformed * w_undeformed;
         if (s_undeformed < EPSILON) {
             return vec4(pos, 1);
@@ -117,8 +117,8 @@ vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 v
     const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
     vec3 color = ambientLight * k_a;
     
-    vec3 light1Pos = vec3(0, 0, 0);
-    vec3 light1Intensity = vec3(0.8, 0.8, 0.8);
+    vec3 light1Pos = vec3(8, 20, 8);
+    vec3 light1Intensity = vec3(0.8);
     
     color += phongContribForLight(k_d, k_s, alpha, p, view_dir,
                                   light1Pos,
@@ -137,6 +137,7 @@ void main()
     vec4 ntsl_res = ntsl(upos, view_deformed, MIN_DIST, MAX_DIST, o_force);
     if (ntsl_res.w == 0) {
         output_color = vec4(0, 0, 0, 1);
+        // output_color = vec4(1);
 
     } else {
         vec3 u_res = ntsl_res.xyz;
@@ -154,6 +155,5 @@ void main()
 
         output_color = vec4(color, 1.0);
     }
-
     // output_color = vec4(1);
 }
