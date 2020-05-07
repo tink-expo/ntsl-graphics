@@ -43,9 +43,9 @@ mat3 estimateJacobian(vec3 pos, vec3 force)
     vec3 diff_y = vec3(0, EPSILON, 0);
     vec3 diff_z = vec3(0, 0, EPSILON);
 
-    vec3 grad_x = (simpleBrush(pos + diff_x, force) - simpleBrush(pos - diff_x, force)) / 2 * EPSILON;
-    vec3 grad_y = (simpleBrush(pos + diff_y, force) - simpleBrush(pos - diff_y, force)) / 2 * EPSILON;
-    vec3 grad_z = (simpleBrush(pos + diff_z, force) - simpleBrush(pos - diff_z, force)) / 2 * EPSILON;
+    vec3 grad_x = (simpleBrush(pos + diff_x, force) - simpleBrush(pos - diff_x, force)) / (2 * EPSILON);
+    vec3 grad_y = (simpleBrush(pos + diff_y, force) - simpleBrush(pos - diff_y, force)) / (2 * EPSILON);
+    vec3 grad_z = (simpleBrush(pos + diff_z, force) - simpleBrush(pos - diff_z, force)) / (2 * EPSILON);
 
     return mat3(grad_x, grad_y, grad_z);
 }
@@ -83,10 +83,10 @@ vec4 ntsl(vec3 ipos, vec3 w, float start, float end, vec3 force)
     vec3 pos = ipos;
     for (int i = 0; i < MAX_MARCHING_STEPS; ++i) {
         mat3 inv_jacobian = inverse(estimateJacobian(pos, force));
-        float s_undeformed = sceneSDF(pos);
+        float s_undeformed = abs(sceneSDF(pos));
         s_sum += s_undeformed;
-        float u_epsilon = s_sum * (rad_pixel * determinant(inv_jacobian));
-
+        float u_epsilon = s_sum * (s_sum * rad_pixel * determinant(inv_jacobian));
+        // float u_epsilon = s_sum * rad_pixel;
         // Termination.
         if (s_undeformed < u_epsilon) {
             return vec4(pos, 1);
@@ -101,11 +101,27 @@ vec4 ntsl(vec3 ipos, vec3 w, float start, float end, vec3 force)
         } else {
             // pos = ode23(pos, s_undeformed);
             vec3 w_undeformed = normalize(inv_jacobian * w);
-            pos = pos + s_undeformed * w_undeformed / 10;
+            pos = pos + s_undeformed * w_undeformed;
         }
     }
 
     return vec4(0);
+    // float depth = start;
+    // vec3 pos = ipos;
+    // for (int i = 0; i < MAX_MARCHING_STEPS; ++i) {
+    //     mat3 inv_jacobian = inverse(estimateJacobian(pos, force));
+    //     vec3 w_undeformed = normalize(inv_jacobian * w);
+    //     float s_undeformed = sceneSDF(pos);
+    //     pos = pos + s_undeformed * w_undeformed;
+    //     if (s_undeformed < EPSILON) {
+    //         return vec4(pos, 1);
+    //     }
+    //     depth += s_undeformed;
+    //     if (depth >= end) {
+    //         return vec4(0);
+    //     }
+    // }
+    // return vec4(0);
 }
 
 vec3 estimateNormal(vec3 p) {

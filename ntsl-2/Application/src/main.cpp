@@ -144,7 +144,7 @@ int main(int argc, char** argv)
             (main_p_data.zNear * tan(glm::radians(main_p_data.fov / 2)))
             / (float) g_framebuffer_height;
 
-    float grid_size = 0.5f;
+    float grid_size = 0.25f;
 
     HullMaterial hull_material;
     hull_material.CreateMaterial();
