@@ -2,7 +2,7 @@
 
 #include <Material.hpp>
 
-class HullMaterial : public Engine::Material
+class NtslMaterial : public Engine::Material
 {
 private:
 public:

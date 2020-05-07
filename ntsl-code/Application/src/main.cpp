@@ -18,10 +18,8 @@
 #include <Shader.hpp>
 
 // include application headers
-#include <DefaultMaterial.hpp>
-#include <HullMaterial.hpp>
+#include <NtslMaterial.hpp>
 #include <MarchingCubes.hpp>
-
 #include <Geometry.hpp>
 
 #define _USE_MATH_DEFINES
@@ -147,7 +145,7 @@ int main(int argc, char** argv)
 
     float grid_size = 0.25f;
 
-    HullMaterial hull_material;
+    NtslMaterial hull_material;
     hull_material.CreateMaterial();
     marchingCubesInitialize(&hull_material, grid_size, rad_pixel);
 
